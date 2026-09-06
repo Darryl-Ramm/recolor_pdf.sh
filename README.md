@@ -29,3 +29,4 @@ For basic usage info try
 $ ./recolor_pdf.sh -h
 ```
 
+*Built with assistance from Google Gemini.*
