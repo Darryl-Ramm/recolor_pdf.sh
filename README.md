@@ -12,7 +12,7 @@ Download the script and make it executable:
 $ curl -sO [https://raw.githubusercontent.com/Darryl_Ramm/recolor-pdf/main/recolor_pdf.sh](https://raw.githubusercontent.com/Darryl_Ramm/recolor-pdf/main/recolor_pdf.sh)
 $ chmod +x recolor_pdf.sh
 ```
-##Usage
+## Usage
 Run the script against your Pro Tools reference PDFs:
 
 e.g.
