@@ -1,5 +1,5 @@
 # recolor_pdf.sh
-Replace the Obnoxious Overuse of Purple in Avid PDF Documentation with Black. :-)
+Replace the obnoxious overuse of purple in Avid PDF documentation with black. :-)
 
 Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic do not. Your designer friends might actually throw up it they see this. 
 
@@ -9,7 +9,7 @@ Pro Tools reference PDFs are flooded with aggressive purple text and more. `reco
 Download the script and make it executable:
 
 ```
-$ curl -sO [https://raw.githubusercontent.com/yourusername/recolor-pdf/main/recolor_pdf.sh](https://raw.githubusercontent.com/yourusername/recolor-pdf/main/recolor_pdf.sh)
+$ curl -sO [https://raw.githubusercontent.com/Darryl_Ramm/recolor-pdf/main/recolor_pdf.sh](https://raw.githubusercontent.com/Darryl_Ramm/recolor-pdf/main/recolor_pdf.sh)
 $ chmod +x recolor_pdf.sh
 ```
 ##Usage
