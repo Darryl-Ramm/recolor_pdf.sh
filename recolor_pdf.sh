@@ -27,7 +27,6 @@
 
 set -euo pipefail
 
-# Configuration
 VERSION="@@VERSION@@"
 VENV_DIR="$HOME/.cache/recolor-pdf-venv"
 PYTHON_BIN="$VENV_DIR/bin/python3"
@@ -38,6 +37,7 @@ usage() {
 Usage: $(basename "$0") [options] <input.pdf>
 
 Options:
+  -p          Show progress during processing
   -h          Display this help message and exit
   -v          Display version information and exit
 
@@ -49,8 +49,11 @@ EOF
     exit 0
 }
 
-while getopts "hv" opt; do
+# Parse CLI flags
+SHOW_PROGRESS=0
+while getopts "phv" opt; do
     case ${opt} in
+        p) SHOW_PROGRESS=1 ;;
         h) usage ;;
         v) echo "recolor-pdf $VERSION"; exit 0 ;;
         *) usage ;;
@@ -83,17 +86,22 @@ if [ ! -f "$PYTHON_BIN" ]; then
     "$PIP_BIN" install pymupdf >/dev/null 2>&1
 fi
 
-"$PYTHON_BIN" - "$INPUT_PDF" "$OUTPUT_PDF" << 'EOF'
+"$PYTHON_BIN" - "$INPUT_PDF" "$OUTPUT_PDF" "$SHOW_PROGRESS" << 'EOF'
 import sys
 import fitz  # PyMuPDF
 
 input_path = sys.argv[1]
 output_path = sys.argv[2]
+show_progress = sys.argv[3] == "1"
+
+def log(msg):
+    if show_progress:
+        print(msg)
 
 doc = fitz.open(input_path)
 total_pages = len(doc)
 
-print(f"Scanning {total_pages} pages for logo geometry...")
+log(f"Scanning {total_pages} pages for logo geometry...")
 
 # Pass 1: Pre-scan logo locations (Avid logo shapes)
 logo_rects_per_page = {}
@@ -101,29 +109,21 @@ for page_num in range(total_pages):
     page = doc[page_num]
     rects = []
     for drawing in page.get_drawings():
-        # Identify logo trademark geometries based on fill/stroke colors or paths
         fill = drawing.get("fill")
-        # Target exact Avid purple components if applicable, or bounding boxes
         if fill and abs(fill[0] - 0.47) < 0.05 and abs(fill[2] - 0.91) < 0.05:
             rects.append(fitz.Rect(drawing["rect"]))
     if rects:
         logo_rects_per_page[page_num] = rects
 
-print(f"Processing and recoloring pages...")
+log("Processing and recoloring pages...")
 
 # Pass 2 & 3: Stream modification with progress updates and logo restoration
 for page_num in range(total_pages):
-    if (page_num + 1) % 100 == 0 or (page_num + 1) == total_pages:
+    if show_progress and ((page_num + 1) % 100 == 0 or (page_num + 1) == total_pages):
         print(f"Progress: {page_num + 1}/{total_pages} pages processed...")
         
     page = doc[page_num]
     
-    # Extract and clean text/drawings content streams
-    text_page = page.get_textpage()
-    
-    # Perform color swap streams (replacing purple vectors/text with black)
-    # Target RGB values close to Avid purple: approx #7826E7 -> (0.47, 0.15, 0.91)
-    # Using low-level content stream operators (RG, rg, K, k)
     contents = page.get_contents()
     if isinstance(contents, int):
         contents = [contents]
@@ -135,14 +135,12 @@ for page_num in range(total_pages):
             
         stream_str = stream_bytes.decode("latin1", errors="ignore")
         
-        # Replace purple stroke/fill operations with black (0 0 0)
         modified_str = stream_str.replace("0.47 0.15 0.91 RG", "0 0 0 RG")
         modified_str = modified_str.replace("0.47 0.15 0.91 rg", "0 0 0 rg")
         
         if modified_str != stream_str:
             doc.update_stream(xref, modified_str.encode("latin1"))
 
-    # Pass 3: Redraw original colors over protected logo bounding boxes if needed
     if page_num in logo_rects_per_page:
         pass
 
