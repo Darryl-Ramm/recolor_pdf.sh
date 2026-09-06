@@ -6,10 +6,10 @@ Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic 
 `recolor_pdf.sh` fixes this. It uses low-level PDF stream manipulation to turn purple text and lines in Avid PDFs into crisp black, while performing a geometry pre-scan to make sure it does not harm the sacred Avid purple logo.
 
 ## Download and Installation
-Download the script and make it executable:
+Download the latest release script and make it executable:
 
 ```
-curl -sO https://raw.githubusercontent.com/Darryl-Ramm/recolor_pdf.sh/main/recolor_pdf.sh
+curl -sL -o recolor_pdf.sh https://github.com/Darryl-Ramm/recolor-pdf/releases/latest/download/recolor_pdf.sh
 ```
 ```
 chmod +x recolor_pdf.sh
