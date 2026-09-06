@@ -1,7 +1,7 @@
 # recolor_pdf.sh
 Replace the obnoxious overuse of purple in Avid PDF documentation with black. :-)
 
-Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic do not. Your designer friends might actually throw up it they see this. 
+Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic do not. Your designer oriented friends might actually throw up it they see Avid PDFs. 
 
 Pro Tools reference PDFs are flooded with aggressive purple text and more. `recolor_pdf.sh` fixes this. It uses low-level PDF stream manipulation to turn Avid purple text and structural lines into crisp black, while performing a geometry pre-scan to make sure it does not harm the sacred Avid purple logo.
 
