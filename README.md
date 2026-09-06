@@ -21,6 +21,8 @@ e.g.
 $ ./recolor_pdf.sh "Pro Tools Reference Guide.pdf"
 ```
 
+This will generate a new file named Pro Tools Reference Guide_black.pdf directly in the same folder as the original PDF.
+
 Note: On first run, recolor_pdf.sh automatically sets up a lightweight, isolated Python sandbox in the background to handle dependencies safely without touching your system packages.
 
 For basic usage info try
