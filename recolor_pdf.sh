@@ -24,6 +24,7 @@
 # SOFTWARE.
 ###
 # Co-crafted with Google Gemini because Avid left us no choice.
+###
 
 set -euo pipefail
 
@@ -49,7 +50,6 @@ EOF
     exit 0
 }
 
-# Parse CLI flags
 SHOW_PROGRESS=0
 while getopts "phv" opt; do
     case ${opt} in
@@ -117,7 +117,7 @@ for page_num in range(total_pages):
 
 log("Processing and recoloring pages...")
 
-# Pass 2 & 3: Stream modification with progress updates and logo restoration
+# Pass 2 & 3: Stream modification with progress updates
 for page_num in range(total_pages):
     if show_progress and ((page_num + 1) % 100 == 0 or (page_num + 1) == total_pages):
         print(f"Progress: {page_num + 1}/{total_pages} pages processed...")
@@ -135,6 +135,7 @@ for page_num in range(total_pages):
             
         stream_str = stream_bytes.decode("latin1", errors="ignore")
         
+        # Reliable string replacement for Avid purple color operators
         modified_str = stream_str.replace("0.47 0.15 0.91 RG", "0 0 0 RG")
         modified_str = modified_str.replace("0.47 0.15 0.91 rg", "0 0 0 rg")
         
