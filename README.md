@@ -11,7 +11,7 @@ Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic 
 Download the latest release script and make it executable:
 
 ```
-curl -sL -o recolor_pdf.sh https://github.com/Darryl-Ramm/recolor_pdf.sh/releases/latest/download/recolor_pdf.sh
+curl -sL -O https://github.com/Darryl-Ramm/recolor_pdf.sh/releases/latest/download/recolor_pdf.sh
 ```
 ```
 chmod +x recolor_pdf.sh
