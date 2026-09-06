@@ -23,15 +23,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ###
-# Co-crafted with Google Gemini because Avid left us no choice.
+# Crafted with help from my dense friend Google Gemini.
 ###
 
 set -euo pipefail
 
-VERSION="@@VERSION@@"
-VENV_DIR="$HOME/.cache/recolor-pdf-venv"
-PYTHON_BIN="$VENV_DIR/bin/python3"
-PIP_BIN="$VENV_DIR/bin/pip"
+GIT_TAG_VERSION=@@VERSION@@
 
 usage() {
     cat << EOF
@@ -50,12 +47,13 @@ EOF
     exit 0
 }
 
+# Parse CLI flags
 SHOW_PROGRESS=0
 while getopts "phv" opt; do
     case ${opt} in
         p) SHOW_PROGRESS=1 ;;
         h) usage ;;
-        v) echo "recolor-pdf $VERSION"; exit 0 ;;
+        v) echo "$(basename "$0") $GIT_TAG_VERSION"; exit 0 ;;
         *) usage ;;
     esac
 done
@@ -74,80 +72,117 @@ if [ ! -f "$INPUT_PDF" ]; then
     exit 1
 fi
 
-DIRNAME=$(dirname "$INPUT_PDF")
-BASENAME=$(basename "$INPUT_PDF" .pdf)
-OUTPUT_PDF="$DIRNAME/${BASENAME}_black.pdf"
+BASENAME="${INPUT_PDF%.pdf}"
+OUTPUT_PDF="${BASENAME}_black.pdf"
 
-# Setup isolated Python environment if missing
-if [ ! -f "$PYTHON_BIN" ]; then
-    echo "Initializing isolated environment for PyMuPDF..." >&2
-    python3 -m venv "$VENV_DIR"
-    "$PIP_BIN" install --upgrade pip >/dev/null 2>&1
-    "$PIP_BIN" install pymupdf >/dev/null 2>&1
+if ! python3 -c "import fitz" &>/dev/null; then
+    echo "pymupdf package not detected. Installing via user space..." >&2
+    python3 -m pip install --user pymupdf
 fi
 
-"$PYTHON_BIN" - "$INPUT_PDF" "$OUTPUT_PDF" "$SHOW_PROGRESS" << 'EOF'
-import sys
-import fitz  # PyMuPDF
+if [ "$SHOW_PROGRESS" -eq 1 ]; then
+    echo "Processing $INPUT_PDF..."
+fi
 
-input_path = sys.argv[1]
-output_path = sys.argv[2]
+# Execute Python worker script
+python3 - "$INPUT_PDF" "$OUTPUT_PDF" "$SHOW_PROGRESS" << 'EOF'
+# recolor_pdf.sh
+import sys
+import re
+import pymupdf
+
+input_pdf = sys.argv[1]
+output_pdf = sys.argv[2]
 show_progress = sys.argv[3] == "1"
 
 def log(msg):
     if show_progress:
-        print(msg)
+        print(msg, flush=True)
 
-doc = fitz.open(input_path)
+doc = pymupdf.open(input_pdf)
 total_pages = len(doc)
+avid_purple = (0.471, 0.149, 0.906)
 
-log(f"Scanning {total_pages} pages for logo geometry...")
+# --- STEP 1: Pre-scan all pages to record logo signatures ---
+log(f"[{total_pages} pages] Starting logo pre-scan...")
+logo_signatures = {}
 
-# Pass 1: Pre-scan logo locations (Avid logo shapes)
-logo_rects_per_page = {}
 for page_num in range(total_pages):
     page = doc[page_num]
-    rects = []
-    for drawing in page.get_drawings():
-        fill = drawing.get("fill")
-        if fill and abs(fill[0] - 0.47) < 0.05 and abs(fill[2] - 0.91) < 0.05:
-            rects.append(fitz.Rect(drawing["rect"]))
-    if rects:
-        logo_rects_per_page[page_num] = rects
+    drawings = page.get_drawings()
+    purple_drawings = []
 
-log("Processing and recoloring pages...")
+    for item in drawings:
+        fill_color = item.get("fill")
+        if fill_color and len(fill_color) >= 3:
+            fr, fg, fb = fill_color[:3]
+            if (0.43 <= fr <= 0.51) and (0.11 <= fg <= 0.19) and (0.86 <= fb <= 0.95):
+                rect = item.get("rect")
+                if rect and (rect.width < 80 and rect.height < 80):
+                    purple_drawings.append(item)
 
-# Pass 2 & 3: Stream modification with progress updates
-for page_num in range(total_pages):
+    if len(purple_drawings) >= 3:
+        logo_signatures[page_num] = purple_drawings
+
     if show_progress and ((page_num + 1) % 100 == 0 or (page_num + 1) == total_pages):
-        print(f"Progress: {page_num + 1}/{total_pages} pages processed...")
-        
+        print(f"  Pre-scan progress: {page_num + 1}/{total_pages} pages checked...", flush=True)
+
+log(f"Pre-scan complete. Found logo signatures on pages: {list(logo_signatures.keys())}")
+
+# --- STEP 2: Global Content Stream Color Substitution (Purple -> Black) ---
+log("Starting global stream color swap...")
+color_pattern = re.compile(
+    r'([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\s+'
+    r'([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\s+'
+    r'([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\s+'
+    r'(rg|RG)\b'
+)
+
+def swap_purple_to_black(match):
+    r = float(match.group(1))
+    g = float(match.group(2))
+    b = float(match.group(3))
+    op = match.group(4)
+
+    if (0.43 <= r <= 0.51) and (0.11 <= g <= 0.19) and (0.86 <= b <= 0.95):
+        return f"0 0 0 {op}"
+    return match.group(0)
+
+for page_num in range(total_pages):
     page = doc[page_num]
-    
     contents = page.get_contents()
-    if isinstance(contents, int):
-        contents = [contents]
-        
-    for xref in contents:
-        stream_bytes = doc.xref_stream(xref)
-        if not stream_bytes:
-            continue
-            
-        stream_str = stream_bytes.decode("latin1", errors="ignore")
-        
-        # Reliable string replacement for Avid purple color operators
-        modified_str = stream_str.replace("0.47 0.15 0.91 RG", "0 0 0 RG")
-        modified_str = modified_str.replace("0.47 0.15 0.91 rg", "0 0 0 rg")
-        
-        if modified_str != stream_str:
-            doc.update_stream(xref, modified_str.encode("latin1"))
+    if contents:
+        for xref in contents:
+            stream_bytes = doc.xref_stream(xref)
+            if stream_bytes:
+                stream_text = stream_bytes.decode("latin1", errors="ignore")
+                new_stream_text = color_pattern.sub(swap_purple_to_black, stream_text)
+                if new_stream_text != stream_text:
+                    doc.update_stream(xref, new_stream_text.encode("latin1"))
 
-    if page_num in logo_rects_per_page:
-        pass
+    if show_progress and ((page_num + 1) % 100 == 0 or (page_num + 1) == total_pages):
+        print(f"  Stream swap progress: {page_num + 1}/{total_pages} pages processed...", flush=True)
 
-doc.save(output_path, garbage=4, deflate=True)
+# --- STEP 3: Restore Pre-Recorded Logo Signatures Back to Avid Purple ---
+log("Restoring logo signatures...")
+for page_num, purple_drawings in logo_signatures.items():
+    page = doc[page_num]
+    shape = page.new_shape()
+    for item in purple_drawings:
+        for subpath in item.get("items", []):
+            ptype = subpath[0]
+            if ptype == "l":
+                shape.draw_line(subpath[1], subpath[2])
+            elif ptype == "re":
+                shape.draw_rect(subpath[1])
+            elif ptype == "c":
+                shape.draw_bezier(subpath[1], subpath[2], subpath[3], subpath[4])
+    shape.finish(color=None, fill=avid_purple)
+    shape.commit()
+
+doc.save(output_pdf)
 doc.close()
-print(f"Success! Saved recolored PDF to: {output_path}")
+print(f"Success! Saved processed PDF to: {output_pdf}", flush=True)
 EOF
 
 # Sorry Marianna :-)
