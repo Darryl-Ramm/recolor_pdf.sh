@@ -9,8 +9,10 @@ Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic 
 Download the script and make it executable:
 
 ```
-$ curl -sO [https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh](https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh)
-$ chmod +x recolor_pdf.sh
+curl -sO [https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh](https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh)
+```
+```
+chmod +x recolor_pdf.sh
 ```
 ## Usage
 Run the script against your Pro Tools reference PDFs:
@@ -18,7 +20,7 @@ Run the script against your Pro Tools reference PDFs:
 e.g.
 
 ```
-$ ./recolor_pdf.sh "Pro Tools Reference Guide.pdf"
+./recolor_pdf.sh "Pro Tools Reference Guide.pdf"
 ```
 
 This will generate a new file named Pro Tools Reference Guide_black.pdf directly in the same folder as the original PDF.
