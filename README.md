@@ -1,5 +1,5 @@
 # recolor_pdf.sh
-Replace the obnoxious overuse of purple in Avid PDF documentation with black. :-)
+A macOS bash shell/Python script that replace the obnoxious overuse of purple in Avid PDF documentation with black. :-)
 
 Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic do not. Your designer oriented friends might actually throw up it they see Avid PDFs. 
 
