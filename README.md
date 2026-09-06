@@ -9,7 +9,7 @@ Avid loves purple, a lot. Your eyes, your printer, and your dark-mode aesthetic 
 Download the script and make it executable:
 
 ```
-curl -sO [https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh](https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh)
+curl -sO https://raw.githubusercontent.com/Darryl_Ramm/recolor_pdf.sh/main/recolor_pdf.sh
 ```
 ```
 chmod +x recolor_pdf.sh
