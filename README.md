@@ -17,9 +17,7 @@ curl -sL -O https://github.com/Darryl-Ramm/recolor_pdf.sh/releases/latest/downlo
 chmod +x recolor_pdf.sh
 ```
 ## Usage
-Run the script against your Pro Tools reference PDFs:
-
-e.g.
+Run the script against an Avid PDF. For example: 
 
 ```
 ./recolor_pdf.sh "Pro Tools Reference Guide.pdf"
