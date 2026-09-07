@@ -25,7 +25,7 @@ Run the script against an Avid PDF. For example:
 
 This will generate a new file named Pro Tools Reference Guide_black.pdf directly in the same folder as the original PDF.
 
-Note: recolor_pdf.sh relies on the popular PyMuPDF Python library package. On first run, recolor_pdf.sh automatically sets up a lightweight, isolated Python sandbox and downloads PyMuPDF and its dependencies safely, using standard Python pip tooling, without touching your system's Python packages. This means your computer needs an Internet connection when you first run recolor_pdf.sh. Subsequent runs do not require an internet connection. Currently the installed packages in that isolated sandbox never get updated, that will change in future. 
+Note: recolor_pdf.sh relies on the PyMuPDF library. On its first run, the script automatically provisions a lightweight, isolated Python virtual environment and installs PyMuPDF locally, leaving your system Python entirely untouched. This initial setup requires an active internet connection; all subsequent runs are fully offline. Currently, dependencies within the sandbox are pinned and do not auto-update (though an update mechanism may be added in a future release).
 
 For basic usage info try
 
